@@ -7,7 +7,7 @@ import {
   User,
   VerifyUserEmailInput,
   AuthenticateUserInput,
-} from "../types/types";
+} from "../types/register-types";
 import UserModel, { IUser } from "../models/User.models";
 import UserVerification from "../models/UserVerification.models";
 import { sendEmailVerification } from "./emailVerification";

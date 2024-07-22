@@ -7,24 +7,18 @@ export default function makeVerifyEmail() {
     res: Response
   ): Promise<void> {
     try {
-      const token = req.query.token as string;
-      console.log("TOKEN", token);
-      const userId = req.query.userId as string;
-      console.log("UserId:", userId);
+      const token = req.params.token as string;
 
-      if (typeof token !== "string" || typeof userId !== "string") {
+      if (typeof token !== "string") {
         res.status(400).json({
           status: "FAILED",
-          message: "Invalid token or user ID",
+          message: "Invalid token",
         });
         return;
       }
 
       // Call the verifyUserEmail function from the database logic
-      const isVerified = await registerDb.verifyUserEmail({
-        token,
-        userId,
-      });
+      const isVerified = await registerDb.verifyUserEmail(token);
 
       if (isVerified) {
         res.status(200).json({

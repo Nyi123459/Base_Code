@@ -6,6 +6,7 @@ export interface IUser extends Document {
   email: string;
   password: string;
   emailVerified?: boolean;
+  refreshToken: string | null;
   isLogin?: boolean;
   createdAt: Date;
 }
@@ -15,6 +16,7 @@ const userSchema = new Schema<IUser>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   emailVerified: { type: Boolean, default: false },
+  refreshToken: { type: String, default: null },
   isLogin: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
 });

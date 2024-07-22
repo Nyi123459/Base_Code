@@ -12,10 +12,9 @@ export const transporter = nodemailer.createTransport({
 
 export function sendEmailVerification(
   email: string,
-  userId: mongoose.Types.ObjectId,
   token: string
 ): Promise<void> {
-  const verificationUrl = `http://localhost:5000/api/user/verify/${userId}/${token}`;
+  const verificationUrl = `http://localhost:5000/api/user/verify/${token}`;
   const mailOptions = {
     from: AUTH_EMAIL,
     to: email,

@@ -12,6 +12,7 @@ import UserModel, { IUser } from "../models/User.models";
 import UserVerification from "../models/UserVerification.models";
 import { sendEmailVerification } from "./emailVerification";
 import { userInfo } from "os";
+import { generateJwtToken, verifyJwtToken } from "../config/token/token";
 
 export default function makeRegisterDb({
   makeDb,
@@ -56,10 +57,8 @@ export default function makeRegisterDb({
       password: hashedPassword,
     });
     await user.save();
-    const verificationToken = generateVerificationToken();
-    await storeVerificationToken(user._id, verificationToken);
-    await sendVerificationEmail(email, user._id, verificationToken);
-
+    const token = generateJwtToken(user._id.toString());
+    await sendVerificationEmail(email, token);
     return user.toObject();
   }
 
@@ -78,37 +77,29 @@ export default function makeRegisterDb({
 
   async function sendVerificationEmail(
     email: string,
-    userId: mongoose.Types.ObjectId,
     token: string
   ): Promise<void> {
-    await sendEmailVerification(email, userId, token);
+    await sendEmailVerification(email, token);
   }
 
-  async function verifyUserEmail({
-    token,
-    userId,
-  }: {
-    token: string;
-    userId: string;
-  }): Promise<boolean> {
-    const verification = await UserVerification.findOne({
-      uniqueString: token,
-      userId,
-    }).exec();
-    if (!verification) {
+  async function verifyUserEmail(token: string): Promise<boolean> {
+    let decoded;
+    try {
+      decoded = verifyJwtToken(token);
+      console.log("Decoded",decoded)
+    } catch (err) {
       throw new Error("Invalid or expired verification token");
     }
-    if (verification.expiresAt < new Date()) {
-      throw new Error("Verification token has expired");
-    }
-    const user = await UserModel.findById(verification.userId).exec();
+
+    const user = await UserModel.findById(decoded.id).exec();
+    console.log("User", user);
     if (!user) {
       throw new Error("User not found");
     }
+
     user.emailVerified = true;
     await user.save();
 
-    await UserVerification.deleteOne({ uniqueString: token }).exec();
     return true;
   }
 
@@ -202,7 +193,6 @@ export default function makeRegisterDb({
     password: string,
     hashedPassword: string
   ): Promise<boolean> {
-    const comparedPassword = await bcrypt.compare(hashedPassword, password);
-    return comparedPassword;
+    return bcrypt.compare(password, hashedPassword);
   }
 }

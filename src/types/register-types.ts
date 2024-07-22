@@ -1,8 +1,10 @@
+import mongoose from "mongoose";
+
 export interface CreateUserInput {
   name: string;
   email: string;
   password: string;
-  [key: string]: any;
+  confirmPassword?: string;
 }
 
 export interface User {
@@ -14,6 +16,7 @@ export interface User {
 }
 
 export interface VerifyUserEmailInput {
+  userId: string;
   token: string;
 }
 

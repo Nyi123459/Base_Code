@@ -1,4 +1,4 @@
-import mongoose, { Connection } from "mongoose";
+import mongoose, { Connection, Document, ObjectId } from "mongoose";
 import bcrypt from "bcryptjs";
 import Id from "../Id";
 import { makeDb } from ".";
@@ -11,6 +11,7 @@ import {
 import UserModel, { IUser } from "../models/User.models";
 import UserVerification from "../models/UserVerification.models";
 import { sendEmailVerification } from "./emailVerification";
+import { userInfo } from "os";
 
 export default function makeRegisterDb({
   makeDb,
@@ -24,14 +25,17 @@ export default function makeRegisterDb({
     storeVerificationToken,
     verifyUserEmail,
     findUserByToken,
+    findByName,
     updateUser,
     authenticateUser,
+    deleteUser,
   });
 
   async function createUser({
+    name,
     email,
     password,
-    ...userInfo
+    confirmPassword,
   }: CreateUserInput): Promise<IUser> {
     if (!validateEmail(email)) {
       throw new Error("Invalid email format");
@@ -39,16 +43,22 @@ export default function makeRegisterDb({
     if (!validatePassword(password)) {
       throw new Error("Password does not meet requirements");
     }
+    if (!confirmPassword) {
+      throw new Error("Please fill in the confirm password");
+    }
+    if (!matchPassword(confirmPassword, password)) {
+      throw new Error("Passwords do not match");
+    }
     const hashedPassword = await hashPassword(password);
     const user = new UserModel({
+      name,
       email,
       password: hashedPassword,
-      ...userInfo,
     });
     await user.save();
     const verificationToken = generateVerificationToken();
     await storeVerificationToken(user._id, verificationToken);
-    await sendVerificationEmail(email, verificationToken);
+    await sendVerificationEmail(email, user._id, verificationToken);
 
     return user.toObject();
   }
@@ -62,21 +72,28 @@ export default function makeRegisterDb({
   }
 
   function generateVerificationToken(): string {
+    console.log("Id", Id.makeId());
     return Id.makeId();
   }
 
   async function sendVerificationEmail(
     email: string,
+    userId: mongoose.Types.ObjectId,
     token: string
   ): Promise<void> {
-    await sendEmailVerification(email, token);
+    await sendEmailVerification(email, userId, token);
   }
 
   async function verifyUserEmail({
     token,
-  }: VerifyUserEmailInput): Promise<Boolean> {
+    userId,
+  }: {
+    token: string;
+    userId: string;
+  }): Promise<boolean> {
     const verification = await UserVerification.findOne({
       uniqueString: token,
+      userId,
     }).exec();
     if (!verification) {
       throw new Error("Invalid or expired verification token");
@@ -107,6 +124,11 @@ export default function makeRegisterDb({
       return null;
     }
     return UserModel.findById(verification.userId).exec();
+  }
+
+  async function findByName({ name }: { name: string }): Promise<IUser | null> {
+    const user = await UserModel.findOne({ name }).exec();
+    return user;
   }
 
   async function storeVerificationToken(
@@ -146,6 +168,14 @@ export default function makeRegisterDb({
     return user;
   }
 
+  async function deleteUser({ _id }: IUser): Promise<Document | null> {
+    if (!_id) {
+      throw new Error("No Id provided");
+    }
+    const result = await UserModel.findOneAndDelete({ _id });
+    return result;
+  }
+
   function validateEmail(email: string): boolean {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
@@ -154,6 +184,10 @@ export default function makeRegisterDb({
     const passwordRegex =
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return passwordRegex.test(password) && password.length >= 8;
+  }
+
+  function matchPassword(confirmPassword: string, password: string): boolean {
+    return confirmPassword === password;
   }
 
   async function hashPassword(password: string): Promise<string> {

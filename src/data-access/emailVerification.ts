@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { AUTH_EMAIL, AUTH_PASSWORD } from "../config";
-import { error, info } from "console";
+import mongoose, { ObjectId } from "mongoose";
 
 export const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -12,14 +12,15 @@ export const transporter = nodemailer.createTransport({
 
 export function sendEmailVerification(
   email: string,
+  userId: mongoose.Types.ObjectId,
   token: string
 ): Promise<void> {
-  const verificationUrl = `http://localhost:5000/api/user/verify/${token}`;
+  const verificationUrl = `http://localhost:5000/api/user/verify/${userId}/${token}`;
   const mailOptions = {
     from: AUTH_EMAIL,
     to: email,
     subject: "Email Verification",
-    html: `<p>Please verify your email by clicking on the following link: <a href="${verificationUrl}"><button>Confirm</button></a></p>`,
+    html: `<p>Please verify your email by clicking on the following link: <a href="${verificationUrl}">${verificationUrl}</a></p>`,
   };
 
   return new Promise((resolve, reject) => {

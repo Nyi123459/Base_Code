@@ -10,7 +10,7 @@ if (!MONGODB_URI) {
 mongoose.connect(MONGODB_URI);
 
 mongoose.connection.on("connected", () => {
-  console.log("Mongoose connected to " + MONGODB_URI);
+  console.log("Mongoose connected ");
 });
 
 mongoose.connection.on("error", (err) => {

@@ -85,12 +85,14 @@ export default function makeRegisterDb({
   async function verifyUserEmail(token: string): Promise<boolean> {
     let decoded;
     try {
-      decoded = verifyJwtToken(token);
-      console.log("Decoded",decoded)
+      console.log("Token in verify User Email:", token);
+      decoded = verifyJwtToken({ token });
+      console.log("Decoded", decoded);
     } catch (err) {
       throw new Error("Invalid or expired verification token");
     }
-
+    const userId = decoded.Id || decoded.id;
+    console.log("UserId :", userId);
     const user = await UserModel.findById(decoded.id).exec();
     console.log("User", user);
     if (!user) {

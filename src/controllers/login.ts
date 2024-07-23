@@ -22,6 +22,7 @@ export default function makeLogin() {
         return;
       }
       user.isLogin = true;
+      user.save();
       res.status(200).json({
         status: "SUCCESS",
         message: "User authenticated successfully",

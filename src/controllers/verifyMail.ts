@@ -8,6 +8,7 @@ export default function makeVerifyEmail() {
   ): Promise<void> {
     try {
       const token = req.params.token as string;
+      console.log("Token in verify Email", token);
 
       if (typeof token !== "string") {
         res.status(400).json({
@@ -19,7 +20,7 @@ export default function makeVerifyEmail() {
 
       // Call the verifyUserEmail function from the database logic
       const isVerified = await registerDb.verifyUserEmail(token);
-
+      console.log("Is verified", isVerified);
       if (isVerified) {
         res.status(200).json({
           status: "SUCCESS",

@@ -10,7 +10,7 @@ import {
 } from "../types/register-types";
 import UserModel, { IUser } from "../models/User.models";
 import UserVerification from "../models/UserVerification.models";
-import { sendEmailVerification } from "./emailVerification";
+import { sendEmailVerification } from "../controllers/emailVerification";
 import { userInfo } from "os";
 import { generateJwtToken, verifyJwtToken } from "../config/token/token";
 

@@ -1,6 +1,5 @@
 import jwt from "jsonwebtoken";
 import { JWT_SECRET, REFRESH_TOKEN_SECRET } from "..";
-import Id from "../../Id";
 
 export function generateJwtToken(userId: string) {
   if (!JWT_SECRET) {

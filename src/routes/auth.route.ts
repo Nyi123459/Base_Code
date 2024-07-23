@@ -14,7 +14,7 @@ const login = makeLogin();
 router.post("/register", createUser);
 router.get("/verify/:token", verifyMail);
 router.post("/login", login);
-router.post("/renew-token/:token", renewAccessToken);
+router.post("/renew-token", renewAccessToken);
 router.get("/protected-route", authenticateToken, (req, res) => {
   res.send("This is a protected route");
 });
